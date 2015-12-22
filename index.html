@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="vendor/bootstrap/3.2.0/css/bootstrap.css" />
 
   <link rel="stylesheet" href="vendor/slickgrid/2.0.1/slick.grid.css">
+   <link rel="stylesheet" href="http://nucivic.github.io/nvd3_visualization_app/css/style.css">
+   <link rel="stylesheet" href="http://nucivic.github.io/nvd3_visualization_app/public/nvd3/build/nv.d3.css">
+
 
   <!-- Recline CSS components -->
   <link rel="stylesheet" href="css/grid.css">
@@ -24,7 +27,7 @@
   <script type="text/javascript" src="vendor/slickgrid/2.0.1/jquery.event.drag-2.0.min.js"></script>
   <script type="text/javascript" src="vendor/slickgrid/2.0.1/slick.grid.min.js"></script>
 
-  <script type="text/javascript" src="dist/recline.min.js"></script>
+  <script type="text/javascript" src="dist/recline.js"></script>
 
   <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/chosen/1.1.0/chosen.min.css">
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/chosen/1.1.0/chosen.jquery.min.js"></script>
@@ -41,11 +44,20 @@ Google Doc url: 'https://docs.google.com/spreadsheet/ccc?key=1R0_i_H-InRaQQK6_EC
 </select>
 <h3 id="result">Grid</h3>
 <div id="my-gdocs" class="doc-ex-rendered">&nbsp;</div>
-<script type="text/javascript" src="http://okfnlabs.org/recline.backend.gdocs/backend.gdocs.js">&nbsp;</script>
+<h3 id="result">Chart 1</h3>
+  <div id="chart-1">&nbsp;</div>
+  <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/recline.backend.gdocs/backend.gdocs.js">&nbsp;</script>
+  <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/lodash/dist/lodash.js">&nbsp;</script>
+  <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/lodash.data/dist/lodash.data.min.js">&nbsp;</script>
+  <script src="http://nucivic.github.io/nvd3_visualization_app/public/d3/d3.js"></script>
+  <script src="http://nucivic.github.io/nvd3_visualization_app/public/nvd3/build/nv.d3.js"></script>
+  <script type="text/javascript" src="recline.view.nvd3.js"></script>
+  <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/recline.view.nvd3.js/dist/recline.view.nvd3.controls.min.js"></script>
+  <script type="text/javascript" src="vendor/csv/csv.js"></script>
 
 <script type="text/javascript">
 var dataset = new recline.Model.Dataset({
-  //url: 'https://docs.google.com/spreadsheet/ccc?key=0Aon3JiuouxLUdGZPaUZsMjBxeGhfOWRlWm85MmV0UUE#gid=0',
+  url: 'dummy_data.csv',
   url: 'https://docs.google.com/spreadsheet/ccc?key=1R0_i_H-InRaQQK6_ECuenLeoAM2TH32edBPbue9c5Rc#gid=0',
   backend: 'gdocs'
 });
@@ -53,24 +65,48 @@ var dataset = new recline.Model.Dataset({
 var grid = new recline.View.Grid({
   model: dataset
 });
+
 $(".chosen-select").chosen();
 
 $('#my-gdocs').append(grid.el);
 
-// Now do the query to the backend to load data
+$(".chosen-select").chosen().change(function() {
+  var nums = $(this).val();
+  var query = new recline.Model.Query();
+  var query = {
+    filters: {
+     filter: {
+      type: "terms",
+      field: "schoolid",
+      terms: nums 
+     }
+   }
+  };
+  dataset.query(query);
+});
+var oneDimensionWithLabels = new recline.Model.ObjectState({
+  options: {
+    x: 'schooltotalstudents',
+  },
+  seriesFields: ['schoolname'],
+  xDataType: "string"
+});
+
+var discreteBar = new recline.View.nvd3.discreteBarChart({
+    model: dataset,
+    state: oneDimensionWithLabels,
+    el: $('#chart-1'),
+});
+discreteBar.render();
+
 dataset.fetch().done(function(dataset) {
   $.each(dataset.records.models, function(key, value) {
-    console.log();
     $('#search-select')
     .append($("<option></option>")
     .attr("value",value.attributes.schoolid)
     .text(value.attributes.schoolname));
   });
   $("#search-select").trigger("chosen:updated");
-  $("#search-select").width("300");
-  if (console) {
-    console.log(dataset);
-  }
 });
 </script>
 
