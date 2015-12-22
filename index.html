@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="css/grid.css">
   <link rel="stylesheet" href="css/slickgrid.css">
   <link rel="stylesheet" href="css/multiview.css">
+  <link rel="stylesheet" href="css/flot.css">
+
   <!-- /Recline CSS components -->
 
   <!-- 3rd party JS libraries -->
@@ -26,6 +28,11 @@
 
   <script type="text/javascript" src="vendor/slickgrid/2.0.1/jquery.event.drag-2.0.min.js"></script>
   <script type="text/javascript" src="vendor/slickgrid/2.0.1/slick.grid.min.js"></script>
+
+  <script type="text/javascript" src="vendor/moment/2.0.0/moment.js"></script>
+
+  <script type="text/javascript" src="vendor/flot/jquery.flot.js"></script>
+  <script type="text/javascript" src="vendor/flot/jquery.flot.time.js"></script>
 
   <script type="text/javascript" src="dist/recline.js"></script>
 
@@ -42,10 +49,13 @@ Google Doc url: 'https://docs.google.com/spreadsheet/ccc?key=1R0_i_H-InRaQQK6_EC
 <select class="chosen-select" style="width: 100%" id="search-select" multiple>
   <option value=""></option>
 </select>
+<div class="row">
+  <div class="col-md-6"><div id="chart-1">&nbsp;</div></div>
+  <div class="col-md-6"><div id="chart-2">&nbsp;</div></div>
+</div>
 <h3 id="result">Grid</h3>
 <div id="my-gdocs" class="doc-ex-rendered">&nbsp;</div>
-<h3 id="result">Chart 1</h3>
-  <div id="chart-1">&nbsp;</div>
+  
   <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/recline.backend.gdocs/backend.gdocs.js">&nbsp;</script>
   <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/lodash/dist/lodash.js">&nbsp;</script>
   <script type="text/javascript" src="http://nucivic.github.io/nvd3_visualization_app/public/lodash.data/dist/lodash.data.min.js">&nbsp;</script>
@@ -84,20 +94,51 @@ $(".chosen-select").chosen().change(function() {
   };
   dataset.query(query);
 });
-var oneDimensionWithLabels = new recline.Model.ObjectState({
-  options: {
-    x: 'schooltotalstudents',
-  },
-  seriesFields: ['schoolname'],
-  xDataType: "string"
-});
 
-var discreteBar = new recline.View.nvd3.discreteBarChart({
+  var data = [
+    {id: 0, date: '2011-01-01', x: 1, y: 2, z: 3, country: 'DE', geo: {lat:52.56, lon:13.40} },
+    {id: 1, date: '2011-02-02', x: 2, y: 4, z: 24, country: 'UK', geo: {lat:54.97, lon:-1.60}},
+    {id: 2, date: '2011-03-03', x: 3, y: 6, z: 9, country: 'US', geo: {lat:40.00, lon:-75.5}},
+    {id: 3, date: '2011-04-04', x: 4, y: 8, z: 6, country: 'UK', geo: {lat:57.27, lon:-6.20}},
+    {id: 4, date: '2011-05-04', x: 5, y: 10, z: 15, country: 'UK', geo: {lat:51.58, lon:0}},
+    {id: 5, date: '2011-06-02', x: 6, y: 12, z: 18, country: 'DE', geo: {lat:51.04, lon:7.9}}
+  ];
+
+  var dataset2 = new recline.Model.Dataset({
+    records: data
+  });
+  
+  //Depending on the view, it may be important to set the date type
+  dataset2.fields.models[1].attributes.type = 'date';
+  console.log(dataset);
+  console.log(dataset2);
+
+  
+  var $el = $('#chart-1');
+  var graph = new recline.View.Graph({
     model: dataset,
-    state: oneDimensionWithLabels,
-    el: $('#chart-1'),
-});
-discreteBar.render();
+    state: {
+      graphType: "columns",
+      group: "schoolname",
+      series: ["schooltotalstudents"]
+    }
+  });
+  $el.append(graph.el);
+  graph.render();
+  graph.redraw();
+
+  var $el = $('#chart-2');
+  var graph2 = new recline.View.Graph({
+    model: dataset,
+    state: {
+      graphType: "bars",
+      group: "schoolname",
+      series: ["schooltotalstudents"]
+    }
+  });
+  $el.append(graph2.el);
+  graph2.render();
+  graph2.redraw();
 
 dataset.fetch().done(function(dataset) {
   $.each(dataset.records.models, function(key, value) {
