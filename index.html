@@ -14,20 +14,29 @@
   <link rel="stylesheet" href="css/multiview.css">
   <!-- /Recline CSS components -->
 
-  <!-- 3rd party JS libraries -->
-  <script src="vendor/slickgrid/2.0.1/jquery-1.7.min.js"></script>
-  <script type="text/javascript" src="vendor/underscore/1.4.4/underscore.js"></script>
-  <script type="text/javascript" src="vendor/backbone/1.0.0/backbone.js"></script>
-  <script type="text/javascript" src="vendor/mustache/0.5.0-dev/mustache.js"></script>
-  <script type="text/javascript" src="vendor/bootstrap/3.2.0/js/bootstrap.js"></script>
+<!-- 3rd party JS libraries -->
+<script type="text/javascript" src="vendor/slickgrid/lib/jquery-1.7.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/chosen/1.1.0/chosen.min.css">
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/chosen/1.1.0/chosen.jquery.min.js"></script>
+<script type="text/javascript" src="vendor/csv.js/csv.js"></script>
+<script type="text/javascript" src="vendor/recline.backend.gdocs/backend.gdocs.js"></script>
+<script type="text/javascript" src="vendor/lodash/dist/lodash.compat.min.js"></script>
+<script type="text/javascript" src="vendor/lodash.data/dist/lodash.data.min.js"></script>
+<script type="text/javascript" src="vendor/backbone/backbone.js"></script>
+<script type="text/javascript" src="vendor/mustache/mustache.js"></script>
+<script type="text/javascript" src="vendor/bootstrap-css/js/bootstrap.js"></script>
+<script type="text/javascript" src="vendor/moment/moment.js"></script>
 
-  <script type="text/javascript" src="vendor/slickgrid/2.0.1/jquery.event.drag-2.0.min.js"></script>
-  <script type="text/javascript" src="vendor/slickgrid/2.0.1/slick.grid.min.js"></script>
+<!--[if lte IE 7]>
+<script language="javascript" type="text/javascript" src="vendor/json/json2.js"></script>
+<![endif]-->
 
-  <script type="text/javascript" src="dist/recline.min.js"></script>
 
-  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/chosen/1.1.0/chosen.min.css">
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/chosen/1.1.0/chosen.jquery.min.js"></script>
+<script src="http://okfnlabs.org/recline/dist/recline.js"></script>
+<script type="text/javascript" src="vendor/d3/d3.js"></script>
+<script type="text/javascript" src="vendor/nvd3/nv.d3.js"></script>
+<link rel="stylesheet" href="vendor/nvd3/nv.d3.css">
+
 
 </head>
 <body>
@@ -41,7 +50,11 @@ Google Doc url: 'https://docs.google.com/spreadsheet/ccc?key=1R0_i_H-InRaQQK6_EC
 </select>
 <h3 id="result">Grid</h3>
 <div id="my-gdocs" class="doc-ex-rendered">&nbsp;</div>
+<div id="total-students">&nbsp;</div>
 <script type="text/javascript" src="http://okfnlabs.org/recline.backend.gdocs/backend.gdocs.js">&nbsp;</script>
+
+<script type="text/javascript" src="dist/recline.view.nvd3.min.js"></script>
+<script type="text/javascript" src="dist/recline.view.nvd3.controls.min.js"></script>
 
 <script type="text/javascript">
 var dataset = new recline.Model.Dataset({
@@ -53,6 +66,29 @@ var dataset = new recline.Model.Dataset({
 var grid = new recline.View.Grid({
   model: dataset
 });
+
+  var oneDimensionWithLabels = new recline.Model.ObjectState({
+    xfield: 'schoolname',
+    seriesFields: ['schooltotalstudents'],
+    group: true,
+    options: {
+      showValues: true,
+      tooltips: false,
+      showControls: false,
+      stacked: true,
+      margin: {top: 30, right: 20, bottom: 50, left: 250},
+    },
+  });
+
+
+  var discreteBar = new recline.View.nvd3.multiBarHorizontalChart({
+    model: dataset,
+    state: oneDimensionWithLabels,
+    el: $('#total-students')
+  });
+  discreteBar.render();
+  nv.utils.windowResize(discreteBar.update);
+
 $(".chosen-select").chosen();
 
 $('#my-gdocs').append(grid.el);
